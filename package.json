@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@turf/turf": "^6.5.0",
     "mapbox-gl": "^3.0.1",
     "next": "14.0.4",
     "react": "^18",

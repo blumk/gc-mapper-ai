@@ -3,7 +3,8 @@ import { useState } from "react";
 import Map, { Source, Layer } from "react-map-gl";
 import flights from "./flights.json";
 import airports from "./airports.json";
-import type { FeatureCollection, Geometry, Feature } from "geojson";
+import type { Feature, Point } from "geojson";
+import { greatCircle, point, lineString, featureCollection } from "@turf/turf";
 
 export default function FlightMap() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -15,7 +16,7 @@ export default function FlightMap() {
       initialViewState={{
         longitude: -100,
         latitude: 40,
-        zoom: 2,
+        zoom: 1.5,
       }}
       style={{ width: "100vw", height: "100vh" }}
       mapStyle="mapbox://styles/blumk/clqrgy8cf00cu01ob4nrufv5k"
@@ -32,8 +33,8 @@ export default function FlightMap() {
             "line-cap": "round",
           }}
           paint={{
-            "line-color": "rgba(3, 170, 238, 0.5)",
-            "line-width": 5,
+            "line-color": "rgba(3, 170, 238, 0.7)",
+            "line-width": 1.5,
           }}
         />
       </Source>
@@ -42,7 +43,7 @@ export default function FlightMap() {
 }
 
 const getFlights = () => {
-  const features: Array<Feature<Geometry>> = [];
+  const features: Array<Feature<Point>> = [];
   flights.forEach((flight) => {
     //@ts-ignore
     const from = airports[flight[0]];
@@ -50,27 +51,31 @@ const getFlights = () => {
     const to = airports[flight[1]];
     features.push(
       createLine([
+        // Note order: longitude, latitude per the GeoJSON standard.
         [from[1], from[0]],
         [to[1], to[0]],
       ])
     );
   });
-  const collection: FeatureCollection = {
-    type: "FeatureCollection",
-    features,
-  };
 
-  return collection;
+  // Mapbox does not use shortest path by default, see https://github.com/mapbox/mapbox-gl-js/issues/11813#issuecomment-1872461121
+  const greatCircleData = convertToGreatCircle(features);
+  return featureCollection(greatCircleData);
 };
 
 const createLine = (coordinates: [number[], number[]]) => {
-  const line: Feature<Geometry> = {
-    type: "Feature",
-    properties: {},
-    geometry: {
-      type: "LineString",
-      coordinates,
-    },
-  };
-  return line;
+  return lineString(coordinates);
+};
+
+const convertToGreatCircle = (features: Array<Feature<Point>>) => {
+  const greatCircleData: Array<Feature<Point>> = [];
+  features.forEach((feature) => {
+    const getStart = feature.geometry.coordinates[0];
+    const getEnd = feature.geometry.coordinates[1];
+    const start = point(getStart);
+    const end = point(getEnd);
+    greatCircleData.push(greatCircle(start, end));
+  });
+
+  return greatCircleData;
 };
