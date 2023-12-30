@@ -1,15 +1,49 @@
 "use client";
-import { useState } from "react";
-import Map, { Source, Layer } from "react-map-gl";
+import { useMemo, useState } from "react";
+import Map, {
+  Source,
+  Layer,
+  Marker,
+  NavigationControl,
+  FullscreenControl,
+  Popup,
+} from "react-map-gl";
 import flights from "./flights.json";
 import airports from "./airports.json";
 import type { Feature, Point } from "geojson";
 //@ts-ignore see https://github.com/Turfjs/turf/issues/2559
 import { greatCircle, point, lineString, featureCollection } from "@turf/turf";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { Dot } from "./Dot";
 
 export default function FlightMap() {
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
   const [flights] = useState(getFlights());
+  const [popupInfo, setPopupInfo] = useState<null | string>(null);
+
+  const uniqueAirports = Object.keys(airports);
+  const pins = useMemo(
+    () =>
+      uniqueAirports.map((airport, index) => (
+        <Marker
+          key={`marker-${index}`}
+          //@ts-ignore
+          longitude={airports[airport][1]}
+          //@ts-ignore
+          latitude={airports[airport][0]}
+          anchor="center"
+          onClick={(e) => {
+            // If we let the click event propagates to the map, it will immediately close the popup
+            // with `closeOnClick: true`
+            e.originalEvent.stopPropagation();
+            setPopupInfo(airport);
+          }}
+        >
+          <Dot />
+        </Marker>
+      )),
+    []
+  );
 
   return (
     <Map
@@ -21,9 +55,14 @@ export default function FlightMap() {
       }}
       style={{ width: "100vw", height: "100vh" }}
       mapStyle="mapbox://styles/blumk/clqrgy8cf00cu01ob4nrufv5k"
+      // mapStyle="mapbox://styles/mapbox/dark-v9"
       mapboxAccessToken={mapboxToken}
       onRender={(event) => event.target.resize()}
     >
+      <FullscreenControl position="top-left" />
+      <NavigationControl position="top-left" />
+
+      {pins}
       <Source id="polylineLayer" type="geojson" data={flights}>
         <Layer
           id="lineLayer"
