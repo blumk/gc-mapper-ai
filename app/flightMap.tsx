@@ -4,6 +4,7 @@ import Map, { Source, Layer } from "react-map-gl";
 import flights from "./flights.json";
 import airports from "./airports.json";
 import type { Feature, Point } from "geojson";
+//@ts-ignore see https://github.com/Turfjs/turf/issues/2559
 import { greatCircle, point, lineString, featureCollection } from "@turf/turf";
 
 export default function FlightMap() {
