@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { Marker } from "react-map-gl";
+import { Marker, Popup } from "react-map-gl";
 import { AirportIcon } from "./airportIcon";
 import airports from "./airports.json";
 
 export const AirportMarkers = () => {
-  const [popupInfo, setPopupInfo] = useState<null | string>(null);
+  const [selectedAirport, setSelectedAirport] = useState<null | string>(null);
 
   const uniqueAirports = Object.keys(airports);
   const pins = useMemo(
@@ -21,7 +21,7 @@ export const AirportMarkers = () => {
             // If we let the click event propagates to the map, it will immediately close the popup
             // with `closeOnClick: true`
             e.originalEvent.stopPropagation();
-            setPopupInfo(airport);
+            setSelectedAirport(airport);
           }}
         >
           <AirportIcon />
@@ -30,5 +30,30 @@ export const AirportMarkers = () => {
     []
   );
 
-  return <>{pins}</>;
+  return (
+    <>
+      {pins}
+      {selectedAirport && (
+        <Popup
+          anchor="top"
+          //@ts-ignore
+          longitude={airports[selectedAirport][1]}
+          //@ts-ignore
+          latitude={airports[selectedAirport][0]}
+          onClose={() => setSelectedAirport(null)}
+        >
+          <div>
+            <h1 className="text-black">{selectedAirport}</h1>,
+            <a
+              target="_new"
+              className="text-black"
+              href={`http://en.wikipedia.org/w/index.php?title=Special:Search&search=${selectedAirport} airport`}
+            >
+              Wikipedia
+            </a>
+          </div>
+        </Popup>
+      )}
+    </>
+  );
 };

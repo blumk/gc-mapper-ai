@@ -25,6 +25,7 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
 a.mapboxgl-ctrl-logo { display: none !important }
 .mapboxgl-ctrl-bottom-right { display: none; }
 div[mapboxgl-children] {
