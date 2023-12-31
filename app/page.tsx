@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 
-const FlightMap = dynamic(() => import("./flightMap"), {
+const FlightMap = dynamic(() => import("./mapbox/flightMap"), {
   loading: () => <p>Loading...</p>,
 });
 
