@@ -1,16 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Source, Layer } from "react-map-gl";
-import flights from "./flights.json";
-import airports from "./airports.json";
 import type { Feature, Point } from "geojson";
 //@ts-ignore see https://github.com/Turfjs/turf/issues/2559
 import { greatCircle, point, lineString, featureCollection } from "@turf/turf";
+import { useFlightDataContext } from "./flightContext";
 
 export const FlightPaths = () => {
-  const [flights] = useState(getFlights());
+  const [flightPaths, setFlightPaths] = useState();
+  const context = useFlightDataContext();
+
+  useEffect(() => {
+    if (context.flightData.loading) {
+      return;
+    }
+
+    const start = performance.now();
+    const flightPaths = plotFlightPaths(
+      context.flightData.flights,
+      context.flightData.airports
+    );
+    setFlightPaths(flightPaths);
+    const end = performance.now();
+    console.log(`GCM Execution time: ${end - start} ms`);
+  }, [context]);
+
+  if (context.flightData.loading) null;
 
   return (
-    <Source id="polylineLayer" type="geojson" data={flights}>
+    <Source id="polylineLayer" type="geojson" data={flightPaths}>
       <Layer
         id="lineLayer"
         type="line"
@@ -28,18 +45,29 @@ export const FlightPaths = () => {
   );
 };
 
-const getFlights = () => {
+const plotFlightPaths = (
+  flights: string[][],
+  airports: Map<string, string[]>
+) => {
   const features: Array<Feature<Point>> = [];
+
   flights.forEach((flight) => {
-    //@ts-ignore
-    const from = airports[flight[0]];
-    //@ts-ignore
-    const to = airports[flight[1]];
+    const from = airports.get(flight[0]);
+    const to = airports.get(flight[1]);
+    if (!from) {
+      console.log("airport not found: ", flight[0]);
+      return;
+    }
+
+    if (!to) {
+      console.log("airport not found: ", flight[1]);
+      return;
+    }
     features.push(
       createLine([
         // Note order: longitude, latitude per the GeoJSON standard.
-        [from[1], from[0]],
-        [to[1], to[0]],
+        [Number(from[3]), Number(from[2])],
+        [Number(to[3]), Number(to[2])],
       ])
     );
   });
