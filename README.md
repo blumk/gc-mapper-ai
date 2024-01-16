@@ -1,4 +1,7 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Great Circle Mapper
+
+<img width="940" alt="image" src="https://github.com/blumk/gc-mapper-ai/assets/2436496/880659ac-fec3-467f-8d60-7cf195bb49aa">
+
 
 ## Getting Started
 
