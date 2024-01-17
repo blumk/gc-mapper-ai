@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@turf/turf": "^6.5.0",
+    "@vercel/analytics": "^1.1.1",
     "csv": "^6.3.6",
     "mapbox-gl": "^3.0.1",
     "next": "14.0.4",
