@@ -1,7 +1,6 @@
 ## Great Circle Mapper
 
-<img width="940" alt="image" src="https://github.com/blumk/gc-mapper-ai/assets/2436496/880659ac-fec3-467f-8d60-7cf195bb49aa">
-
+<img width="1290" height="709" alt="Screenshot 2025-10-26 at 4 06 29 PM" src="https://github.com/user-attachments/assets/cfff5014-be7b-4306-8295-9e0496621218" />
 
 ## Getting Started
 
