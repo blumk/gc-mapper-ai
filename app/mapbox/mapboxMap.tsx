@@ -1,6 +1,8 @@
 import Map, { NavigationControl, FullscreenControl } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
+import type { JSX } from "react";
+
 interface MapboxMapProps {
   children: string | JSX.Element | JSX.Element[] | Element[];
 }
