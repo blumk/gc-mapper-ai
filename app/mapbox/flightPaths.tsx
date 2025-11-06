@@ -89,23 +89,45 @@ export const FlightPaths = () => {
       const totalSpaceAbove = popupHeight + markerHeight + popupOffset + 30; // Extra margin
       const totalSpaceSides = popupWidth / 2 + 30; // Half width + margin
 
+      // Calculate bounds with padding
+      const sw: [number, number] = [bounds[0], bounds[1]];
+      const ne: [number, number] = [bounds[2], bounds[3]];
+
+      // Minimum zoom level to prevent zooming out too far (continent level, not entire globe)
+      const minZoom = 2.5;
+
       // Fit bounds with generous padding to ensure popup space
-      map.fitBounds(
-        [
-          [bounds[0], bounds[1]], // Southwest corner [lng, lat]
-          [bounds[2], bounds[3]], // Northeast corner [lng, lat]
-        ],
-        {
-          padding: {
-            top: Math.max(totalSpaceAbove, viewportHeight / 3), // Very generous top padding
-            bottom: 100,
-            left: Math.max(totalSpaceSides, 150), // Generous side padding
-            right: Math.max(totalSpaceSides, 150),
-          },
-          duration: 1000,
-          maxZoom: 8,
+      map.fitBounds([sw, ne], {
+        padding: {
+          top: Math.max(totalSpaceAbove, viewportHeight / 3), // Very generous top padding
+          bottom: 100,
+          left: Math.max(totalSpaceSides, 150), // Generous side padding
+          right: Math.max(totalSpaceSides, 150),
+        },
+        duration: 1000,
+        maxZoom: 8,
+      });
+
+      // After fitBounds, check and cap zoom if it went too far out
+      const handleZoomCheck = () => {
+        const currentZoom = map.getZoom();
+
+        if (currentZoom < minZoom) {
+          // Calculate center of bounds
+          const centerLon = (bounds[0] + bounds[2]) / 2;
+          const centerLat = (bounds[1] + bounds[3]) / 2;
+
+          // Use flyTo with minimum zoom to prevent showing entire globe
+          map.flyTo({
+            center: [centerLon, centerLat],
+            zoom: minZoom,
+            duration: 300,
+          });
         }
-      );
+        map.off("moveend", handleZoomCheck);
+      };
+
+      map.once("moveend", handleZoomCheck);
 
       // After fitBounds, verify and adjust using actual popup DOM position
       const verifyAndAdjust = () => {
