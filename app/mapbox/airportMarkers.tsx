@@ -3,6 +3,11 @@ import { Marker, Popup } from "react-map-gl";
 import { AirportIcon } from "./airportIcon";
 import { useFlightDataContext } from "./flightContext";
 
+// Helper to check if a code is valid (not empty or \N)
+const isValidCode = (code: string | undefined): boolean => {
+  return !!(code && code !== "\\N" && code.trim() !== "");
+};
+
 export const AirportMarkers = () => {
   const [mounted, setMounted] = useState(false);
   const [selectedAirport, setSelectedAirport] = useState<null | string>(null);
@@ -90,10 +95,12 @@ export const AirportMarkers = () => {
                 {selectedAirportData[1]}
               </h2>
               <div className="flex items-baseline gap-2">
-                <p className="text-sm font-semibold text-sky-600 uppercase tracking-wide">
-                  {selectedAirport}
-                </p>
-                {selectedAirportData[2] && (
+                {isValidCode(selectedAirportData[0]) && (
+                  <p className="text-sm font-semibold text-sky-600 uppercase tracking-wide">
+                    {selectedAirportData[0]}
+                  </p>
+                )}
+                {isValidCode(selectedAirportData[2]) && (
                   <p className="text-xs text-gray-500 uppercase tracking-wide">
                     {selectedAirportData[2]}
                   </p>

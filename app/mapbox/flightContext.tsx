@@ -35,52 +35,101 @@ const useFlightData = () => {
       const flights = await loadUniqueFlightConnections();
       const allFlights = await loadAllFlights();
 
-      // Build airport Map first for O(1) lookups - much faster than O(n*m)
-      const airportMap = new Map<string, string[]>();
+      // Build IATA -> ICAO mapping (multiple IATA codes can map to same ICAO)
+      // and ICAO -> Airport data mapping (ICAO is unique)
+      const iataToIcaoMap = new Map<string, string>();
+      const airportMapByICAO = new Map<string, string[]>();
+
       allAirports.forEach((airport) => {
-        airportMap.set(airport[0], airport);
-      });
+        // Index 0 = IATA code, Index 2 = ICAO code
+        const iataCode = airport[0];
+        const icaoCode = airport[2];
 
-      // Collect needed airport codes from flights
-      const neededAirportCodes = new Set<string>();
-      flights.forEach((flight) => {
-        neededAirportCodes.add(flight[0]);
-        neededAirportCodes.add(flight[1]);
-      });
-      console.log("Requested airports: ", neededAirportCodes.size);
+        // Build IATA -> ICAO mapping (handles multiple IATA codes for same airport)
+        // \N is used in OpenFlights format to represent NULL/empty values
+        const hasValidIATA =
+          iataCode && iataCode !== "\\N" && iataCode.trim() !== "";
+        const hasValidICAO =
+          icaoCode && icaoCode !== "\\N" && icaoCode.trim() !== "";
 
-      // Filter to only airports we need and that exist
-      const validAirports = new Map<string, string[]>();
-      neededAirportCodes.forEach((code) => {
-        const airport = airportMap.get(code);
-        if (airport) {
-          validAirports.set(code, airport);
-        } else {
-          console.log("Airport not found: ", code);
+        if (hasValidIATA && hasValidICAO) {
+          iataToIcaoMap.set(iataCode, icaoCode);
+        }
+
+        // Store airports by ICAO code (unique identifier)
+        if (hasValidICAO) {
+          // Only store if we don't have it yet, or if this entry has an IATA code
+          // (prefer entries with IATA codes for display)
+          const existing = airportMapByICAO.get(icaoCode);
+          if (!existing || hasValidIATA) {
+            airportMapByICAO.set(icaoCode, airport);
+          }
         }
       });
 
-      // Filter out flights where either airport is missing
-      const validFlights = flights.filter((flight) => {
-        return validAirports.has(flight[0]) && validAirports.has(flight[1]);
+      // Convert flight data from IATA/ICAO codes to ICAO codes for internal use
+      const convertToICAO = (code: string): string | null => {
+        // If it's already an ICAO code (4 letters), use it directly
+        if (code.length === 4) {
+          return airportMapByICAO.has(code) ? code : null;
+        }
+        // Otherwise, try to convert IATA to ICAO
+        return iataToIcaoMap.get(code) || null;
+      };
+
+      // Convert flights to use ICAO codes internally
+      const flightsICAO = flights
+        .map((flight) => {
+          const fromICAO = convertToICAO(flight[0]);
+          const toICAO = convertToICAO(flight[1]);
+          if (fromICAO && toICAO) {
+            return [fromICAO, toICAO];
+          }
+          return null;
+        })
+        .filter((flight): flight is string[] => flight !== null);
+
+      const allFlightsICAO = allFlights
+        .map((flight) => {
+          const fromICAO = convertToICAO(flight[0]);
+          const toICAO = convertToICAO(flight[1]);
+          if (fromICAO && toICAO) {
+            return [fromICAO, toICAO];
+          }
+          return null;
+        })
+        .filter((flight): flight is string[] => flight !== null);
+
+      // Collect all unique ICAO codes from converted flights
+      const neededICAOCodes = new Set<string>();
+      flightsICAO.forEach((flight) => {
+        neededICAOCodes.add(flight[0]);
+        neededICAOCodes.add(flight[1]);
+      });
+      console.log("Requested airports (ICAO): ", neededICAOCodes.size);
+
+      // Build valid airports map using ICAO codes as keys
+      const validAirports = new Map<string, string[]>();
+      neededICAOCodes.forEach((icaoCode) => {
+        const airport = airportMapByICAO.get(icaoCode);
+        if (airport) {
+          validAirports.set(icaoCode, airport);
+        } else {
+          console.log("Airport not found (ICAO): ", icaoCode);
+        }
       });
 
       console.log("Valid airports: ", validAirports.size);
-      console.log("Valid flights: ", validFlights.length);
+      console.log("Valid flights: ", flightsICAO.length);
 
       const end = performance.now();
       console.log(`Data load complete: ${end - start} ms`);
 
-      // Filter all flights to only include those with valid airports
-      const validAllFlights = allFlights.filter((flight) => {
-        return validAirports.has(flight[0]) && validAirports.has(flight[1]);
-      });
-
       setFlightData({
         loading: false,
-        airports: validAirports,
-        flights: validFlights,
-        allFlights: validAllFlights,
+        airports: validAirports, // Keyed by ICAO code
+        flights: flightsICAO, // Using ICAO codes internally
+        allFlights: allFlightsICAO, // Using ICAO codes internally
       });
     };
 
