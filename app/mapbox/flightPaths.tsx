@@ -75,8 +75,9 @@ const plotFlightPaths = (
     }
 
     // Create great circle directly without intermediate lineString
-    const start = point([Number(from[3]), Number(from[2])]); // [longitude, latitude]
-    const end = point([Number(to[3]), Number(to[2])]);
+    // Data structure: [IATA, Name, ICAO, Latitude, Longitude]
+    const start = point([Number(from[4]), Number(from[3])]); // [longitude, latitude]
+    const end = point([Number(to[4]), Number(to[3])]);
     greatCircleFeatures.push(greatCircle(start, end));
   });
 
