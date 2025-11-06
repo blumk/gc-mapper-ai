@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Marker, Popup } from "react-map-gl";
 import { AirportIcon } from "./airportIcon";
 import { useFlightDataContext } from "./flightContext";
+import { useMap } from "./mapboxMap";
 
 // Helper to check if a code is valid (not empty or \N)
 const isValidCode = (code: string | undefined): boolean => {
@@ -11,6 +12,7 @@ const isValidCode = (code: string | undefined): boolean => {
 export const AirportMarkers = () => {
   const [mounted, setMounted] = useState(false);
   const [selectedAirport, setSelectedAirport] = useState<null | string>(null);
+  const map = useMap();
 
   const context = useFlightDataContext();
   const airports = context.flightData.airports;
@@ -19,6 +21,25 @@ export const AirportMarkers = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Pan map to center selected airport with smooth animation
+  // Offset downward to center the popup in viewport (popup appears above marker)
+  useEffect(() => {
+    if (!mounted || !selectedAirport || !map) return;
+
+    const airportData = airports.get(selectedAirport);
+    if (airportData) {
+      const currentZoom = map.getZoom();
+      // Offset downward to center the popup in viewport
+      // Popup is ~200-250px tall, so offset by half that to center it
+      map.flyTo({
+        center: [Number(airportData[4]), Number(airportData[3])],
+        zoom: Math.max(currentZoom, 4), // Ensure minimum zoom level
+        duration: 1000, // Smooth 1 second transition
+        offset: [0, 100], // Offset downward to center popup in viewport
+      });
+    }
+  }, [selectedAirport, map, mounted, airports]);
 
   // Use airport code as key instead of index for better React reconciliation
   // Depend on airports.size instead of entire Map object
@@ -80,15 +101,17 @@ export const AirportMarkers = () => {
       {pins}
       {selectedAirport && selectedAirportData && (
         <Popup
-          anchor="top"
+          anchor="bottom"
           longitude={Number(selectedAirportData[4])}
           latitude={Number(selectedAirportData[3])}
           onClose={() => setSelectedAirport(null)}
           closeButton={true}
           closeOnClick={true}
           className="airport-popup"
+          offset={[0, -10]}
+          maxWidth="none"
         >
-          <div className="w-fit max-w-xs">
+          <div className="w-fit max-w-xs p-4">
             {/* Header */}
             <div className="mb-3 pb-3 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900 mb-1 break-words">

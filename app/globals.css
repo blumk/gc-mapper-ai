@@ -31,3 +31,26 @@ a.mapboxgl-ctrl-logo { display: none !important }
 div[mapboxgl-children] {
   display: none; 
 }
+
+/* Minimal CSS for Mapbox popup elements (not directly controllable via React/Tailwind) */
+.airport-popup .mapboxgl-popup-content {
+  @apply rounded-lg shadow-lg transition-all duration-300;
+  padding: 0 !important;
+}
+
+.airport-popup .mapboxgl-popup-close-button {
+  @apply w-7 h-7 text-base leading-7 p-0 m-2 text-gray-600 bg-white/95 rounded-full transition-all duration-200 z-[1002] block opacity-100;
+}
+
+.airport-popup .mapboxgl-popup-close-button:hover {
+  @apply text-black bg-white scale-110;
+}
+
+.mapboxgl-popup {
+  @apply max-w-[90vw] z-[1000] max-h-[90vh] overflow-y-auto;
+}
+
+.mapboxgl-popup-content {
+  @apply max-h-[90vh] overflow-y-auto;
+  padding: 0 !important;
+}
