@@ -96,6 +96,8 @@ export const AirportMarkers = () => {
   // Return null during SSR and initial render to prevent hydration mismatch
   if (!mounted || context.flightData.loading) return null;
 
+  const popupOffset: [number, number] = [0, -10];
+
   return (
     <>
       {pins}
@@ -108,7 +110,7 @@ export const AirportMarkers = () => {
           closeButton={true}
           closeOnClick={true}
           className="airport-popup"
-          offset={[0, -10] as [number, number]}
+          offset={popupOffset}
           maxWidth="none"
         >
           <div className="w-fit max-w-xs p-4">
