@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+//@ts-ignore see https://github.com/Turfjs/turf/issues/2559
 import { bbox } from "@turf/turf";
 import type { FeatureCollection } from "geojson";
 import { useFlightDataContext, useSelectedAirport } from "../flightContext";
