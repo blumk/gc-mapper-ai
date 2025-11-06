@@ -66,6 +66,25 @@ export const FlightPaths = () => {
       // Calculate bounding box of highlighted routes
       const bounds = bbox(highlightedFlights);
 
+      // Validate bounds - ensure lat/lng are within valid ranges
+      const minLon = Math.max(-180, Math.min(180, bounds[0]));
+      const minLat = Math.max(-90, Math.min(90, bounds[1]));
+      const maxLon = Math.max(-180, Math.min(180, bounds[2]));
+      const maxLat = Math.max(-90, Math.min(90, bounds[3]));
+
+      // Check if bounds are valid
+      if (
+        !isFinite(minLon) ||
+        !isFinite(minLat) ||
+        !isFinite(maxLon) ||
+        !isFinite(maxLat) ||
+        minLon >= maxLon ||
+        minLat >= maxLat
+      ) {
+        console.error("Invalid bounds calculated:", bounds);
+        return;
+      }
+
       // Get selected airport coordinates
       const selectedAirportData =
         context.flightData.airports.get(selectedAirport);
@@ -73,6 +92,19 @@ export const FlightPaths = () => {
 
       const airportLon = Number(selectedAirportData[4]);
       const airportLat = Number(selectedAirportData[3]);
+
+      // Validate airport coordinates
+      if (
+        !isFinite(airportLon) ||
+        !isFinite(airportLat) ||
+        airportLat < -90 ||
+        airportLat > 90 ||
+        airportLon < -180 ||
+        airportLon > 180
+      ) {
+        console.error("Invalid airport coordinates:", airportLon, airportLat);
+        return;
+      }
 
       // Get viewport dimensions
       const container = map.getContainer();
@@ -89,9 +121,9 @@ export const FlightPaths = () => {
       const totalSpaceAbove = popupHeight + markerHeight + popupOffset + 30; // Extra margin
       const totalSpaceSides = popupWidth / 2 + 30; // Half width + margin
 
-      // Calculate bounds with padding
-      const sw: [number, number] = [bounds[0], bounds[1]];
-      const ne: [number, number] = [bounds[2], bounds[3]];
+      // Calculate bounds with padding (using validated values)
+      const sw: [number, number] = [minLon, minLat];
+      const ne: [number, number] = [maxLon, maxLat];
 
       // Minimum zoom level to prevent zooming out too far (continent level, not entire globe)
       const minZoom = 2.5;
