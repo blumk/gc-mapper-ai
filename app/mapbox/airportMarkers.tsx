@@ -24,6 +24,22 @@ export const AirportMarkers = () => {
 
   // Note: Map zooming is handled in FlightPaths component to fit all highlighted routes
 
+  // Get connected airports (destinations) for the selected airport
+  const connectedAirports = useMemo(() => {
+    if (!selectedAirport || !context.flightData.flights) {
+      return new Set<string>();
+    }
+    const connected = new Set<string>();
+    context.flightData.flights.forEach((flight) => {
+      if (flight[0] === selectedAirport) {
+        connected.add(flight[1]);
+      } else if (flight[1] === selectedAirport) {
+        connected.add(flight[0]);
+      }
+    });
+    return connected;
+  }, [selectedAirport, context.flightData.flights]);
+
   // Use airport code as key instead of index for better React reconciliation
   // Depend on airports.size instead of entire Map object
   // Handle loading state inside useMemo to avoid conditional hook calls
@@ -31,23 +47,42 @@ export const AirportMarkers = () => {
     if (!mounted || context.flightData.loading || airports.size === 0) {
       return [];
     }
-    return [...airports.entries()].map(([code, airportData]) => (
-      <Marker
-        key={`marker-${code}`}
-        longitude={Number(airportData[4])}
-        latitude={Number(airportData[3])}
-        anchor="center"
-        onClick={(e) => {
-          // If we let the click event propagates to the map, it will immediately close the popup
-          // with `closeOnClick: true`
-          e.originalEvent.stopPropagation();
-          setSelectedAirport(code);
-        }}
-      >
-        <AirportIcon />
-      </Marker>
-    ));
-  }, [mounted, context.flightData.loading, airports.size, airports]);
+    return [...airports.entries()].map(([code, airportData]) => {
+      const isSelected = code === selectedAirport;
+      const isConnected = connectedAirports.has(code);
+      const isUnselected =
+        selectedAirport !== null && !isSelected && !isConnected;
+
+      return (
+        <Marker
+          key={`marker-${code}`}
+          longitude={Number(airportData[4])}
+          latitude={Number(airportData[3])}
+          anchor="center"
+          onClick={(e) => {
+            // If we let the click event propagates to the map, it will immediately close the popup
+            // with `closeOnClick: true`
+            e.originalEvent.stopPropagation();
+            setSelectedAirport(code);
+          }}
+        >
+          <AirportIcon
+            isSelected={isSelected}
+            isConnected={isConnected}
+            isUnselected={isUnselected}
+          />
+        </Marker>
+      );
+    });
+  }, [
+    mounted,
+    context.flightData.loading,
+    airports.size,
+    airports,
+    selectedAirport,
+    connectedAirports,
+    setSelectedAirport,
+  ]);
 
   const selectedAirportData = selectedAirport
     ? airports.get(selectedAirport)
