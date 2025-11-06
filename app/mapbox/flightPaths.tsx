@@ -67,7 +67,8 @@ export const FlightPaths = () => {
       const bounds = bbox(highlightedFlights);
 
       // Get selected airport coordinates
-      const selectedAirportData = context.flightData.airports.get(selectedAirport);
+      const selectedAirportData =
+        context.flightData.airports.get(selectedAirport);
       if (!selectedAirportData) return;
 
       const airportLon = Number(selectedAirportData[4]);
@@ -77,17 +78,17 @@ export const FlightPaths = () => {
       const container = map.getContainer();
       const viewportHeight = container.clientHeight;
       const viewportWidth = container.clientWidth;
-      
+
       // Popup dimensions (conservative estimates)
       const popupHeight = 200; // Slightly larger to be safe
       const popupWidth = 160;
       const markerHeight = 32;
       const popupOffset = 20; // Offset from marker
-      
+
       // Calculate total space needed above marker for popup
       const totalSpaceAbove = popupHeight + markerHeight + popupOffset + 30; // Extra margin
       const totalSpaceSides = popupWidth / 2 + 30; // Half width + margin
-      
+
       // Fit bounds with generous padding to ensure popup space
       map.fitBounds(
         [
@@ -95,31 +96,33 @@ export const FlightPaths = () => {
           [bounds[2], bounds[3]], // Northeast corner [lng, lat]
         ],
         {
-          padding: { 
+          padding: {
             top: Math.max(totalSpaceAbove, viewportHeight / 3), // Very generous top padding
-            bottom: 100, 
+            bottom: 100,
             left: Math.max(totalSpaceSides, 150), // Generous side padding
-            right: Math.max(totalSpaceSides, 150) 
+            right: Math.max(totalSpaceSides, 150),
           },
           duration: 1000,
           maxZoom: 8,
         }
       );
-      
+
       // After fitBounds, verify and adjust using actual popup DOM position
       const verifyAndAdjust = () => {
         // Wait for popup to render, then check actual DOM position
         const checkPopup = () => {
           try {
             // Find the actual popup DOM element
-            const popupElement = document.querySelector('.airport-popup .mapboxgl-popup') as HTMLElement;
-            
+            const popupElement = document.querySelector(
+              ".airport-popup .mapboxgl-popup"
+            ) as HTMLElement;
+
             if (!popupElement) {
               // If popup not found yet, try again after a short delay
               setTimeout(checkPopup, 50);
               return;
             }
-            
+
             // Get actual popup position from DOM
             const popupRect = popupElement.getBoundingClientRect();
             const viewportRect = {
@@ -128,53 +131,53 @@ export const FlightPaths = () => {
               bottom: viewportHeight,
               right: viewportWidth,
             };
-            
+
             // Check if popup is outside viewport
             const margin = 20;
             let needsAdjustment = false;
             let deltaX = 0;
             let deltaY = 0;
-            
+
             // Check each edge
             if (popupRect.top < viewportRect.top + margin) {
-              deltaY = (viewportRect.top + margin) - popupRect.top;
+              deltaY = viewportRect.top + margin - popupRect.top;
               needsAdjustment = true;
             }
-            
+
             if (popupRect.bottom > viewportRect.bottom - margin) {
-              deltaY = (viewportRect.bottom - margin) - popupRect.bottom;
+              deltaY = viewportRect.bottom - margin - popupRect.bottom;
               needsAdjustment = true;
             }
-            
+
             if (popupRect.left < viewportRect.left + margin) {
-              deltaX = (viewportRect.left + margin) - popupRect.left;
+              deltaX = viewportRect.left + margin - popupRect.left;
               needsAdjustment = true;
             }
-            
+
             if (popupRect.right > viewportRect.right - margin) {
-              deltaX = (viewportRect.right - margin) - popupRect.right;
+              deltaX = viewportRect.right - margin - popupRect.right;
               needsAdjustment = true;
             }
-            
+
             // Adjust map if popup is outside viewport
             if (needsAdjustment) {
               const currentBounds = map.getBounds();
               if (!currentBounds) return;
-              
+
               const ne = currentBounds.getNorthEast();
               const sw = currentBounds.getSouthWest();
               const latRange = ne.lat - sw.lat;
               const lonRange = ne.lng - sw.lng;
-              
+
               // Convert pixel deltas to geographic deltas
               const latDelta = -(deltaY / viewportHeight) * latRange;
               const lonDelta = (deltaX / viewportWidth) * lonRange;
-              
+
               const currentCenter = map.getCenter();
               map.flyTo({
                 center: [
                   currentCenter.lng + lonDelta,
-                  currentCenter.lat + latDelta
+                  currentCenter.lat + latDelta,
                 ],
                 zoom: map.getZoom(),
                 duration: 400,
@@ -184,22 +187,28 @@ export const FlightPaths = () => {
             console.error("Error verifying popup position:", error);
           }
         };
-        
+
         // Start checking after a short delay to ensure popup is rendered
         setTimeout(checkPopup, 150);
       };
-      
+
       // Use moveend event to check after animation completes
       const handleMoveEnd = () => {
         verifyAndAdjust();
-        map.off('moveend', handleMoveEnd);
+        map.off("moveend", handleMoveEnd);
       };
-      
-      map.once('moveend', handleMoveEnd);
+
+      map.once("moveend", handleMoveEnd);
     } catch (error) {
       console.error("Error fitting bounds:", error);
     }
-  }, [selectedAirport, highlightedFlights, map, mounted, context.flightData.airports]);
+  }, [
+    selectedAirport,
+    highlightedFlights,
+    map,
+    mounted,
+    context.flightData.airports,
+  ]);
 
   // Return null during SSR and initial render to prevent hydration mismatch
   if (!mounted || context.flightData.loading || !flightPaths) return null;
