@@ -70,10 +70,16 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
             {topAirports.map((airport, index) => (
               <button
                 key={airport.code}
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedAirport(airport.code);
                 }}
+                onFocus={(e) => {
+                  // Prevent auto-focus on first render
+                  e.target.blur();
+                }}
+                autoFocus={false}
                 className="flex items-center justify-between text-[8px] w-full text-left hover:bg-gray-800/60 rounded px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
               >
                 <div className="flex items-center gap-1 flex-1 min-w-0">
@@ -135,4 +141,3 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
     </div>
   );
 };
-
