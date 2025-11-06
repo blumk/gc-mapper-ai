@@ -43,7 +43,7 @@ export const FlightPaths = () => {
       <Layer
         id="lineLayer"
         type="line"
-        source="my-data"
+        source="polylineLayer"
         layout={{
           "line-join": "round",
           "line-cap": "round",

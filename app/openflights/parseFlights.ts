@@ -6,8 +6,8 @@ export const loadUniqueFlightConnections = async () => {
   const uniqueRoutes = new Set<string>();
 
   flightsCSV.forEach((flight: string[]) => {
-    if (flight[0] === "Data") {
-      // skip header (openflights format)
+    if (flight[0] === "Date" || flight[0] === "Data") {
+      // skip header
       return;
     }
     const route = `${flight[1]}-${flight[2]}`;
@@ -24,4 +24,25 @@ export const loadUniqueFlightConnections = async () => {
   console.log(`flight execution time: ${end - start} ms`);
 
   return result;
+};
+
+// Load all flights (both directions) for statistics
+export const loadAllFlights = async () => {
+  const start = performance.now();
+  const allFlights: string[][] = [];
+
+  flightsCSV.forEach((flight: string[]) => {
+    if (flight[0] === "Date" || flight[0] === "Data") {
+      // skip header
+      return;
+    }
+    // Include all flights (both directions)
+    allFlights.push([flight[1], flight[2]]);
+  });
+
+  const end = performance.now();
+  console.log(`total flights (all directions): ${allFlights.length}`);
+  console.log(`all flights execution time: ${end - start} ms`);
+
+  return allFlights;
 };

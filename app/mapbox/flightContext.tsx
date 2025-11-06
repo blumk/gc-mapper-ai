@@ -7,12 +7,16 @@ import {
   useState,
 } from "react";
 import { loadAirports } from "../openflights/parseAirports";
-import { loadUniqueFlightConnections } from "../openflights/parseFlights";
+import {
+  loadUniqueFlightConnections,
+  loadAllFlights,
+} from "../openflights/parseFlights";
 
 export interface FlightData {
   loading: boolean;
   airports: Map<string, string[]>;
-  flights: string[][];
+  flights: string[][]; // Unique routes for map visualization
+  allFlights: string[][]; // All flights (both directions) for statistics
 }
 
 const useFlightData = () => {
@@ -20,6 +24,7 @@ const useFlightData = () => {
     loading: true,
     airports: new Map(),
     flights: [],
+    allFlights: [],
   });
 
   useEffect(() => {
@@ -28,6 +33,7 @@ const useFlightData = () => {
 
       const allAirports = await loadAirports();
       const flights = await loadUniqueFlightConnections();
+      const allFlights = await loadAllFlights();
 
       // Build airport Map first for O(1) lookups - much faster than O(n*m)
       const airportMap = new Map<string, string[]>();
@@ -65,10 +71,16 @@ const useFlightData = () => {
       const end = performance.now();
       console.log(`Data load complete: ${end - start} ms`);
 
+      // Filter all flights to only include those with valid airports
+      const validAllFlights = allFlights.filter((flight) => {
+        return validAirports.has(flight[0]) && validAirports.has(flight[1]);
+      });
+
       setFlightData({
         loading: false,
         airports: validAirports,
         flights: validFlights,
+        allFlights: validAllFlights,
       });
     };
 

@@ -45,18 +45,27 @@ export const AirportMarkers = () => {
     : null;
 
   // Calculate flight statistics for the selected airport
+  // Use allFlights (both directions) for accurate statistics
   const flightStats = useMemo(() => {
-    if (!selectedAirport || !context.flightData.flights) {
+    if (!selectedAirport || !context.flightData.allFlights) {
       return { departing: 0, arriving: 0, total: 0 };
     }
-    const departing = context.flightData.flights.filter(
+
+    // Count flights for display (departing and arriving) from all flights
+    const departing = context.flightData.allFlights.filter(
       (flight) => flight[0] === selectedAirport
     ).length;
-    const arriving = context.flightData.flights.filter(
+    const arriving = context.flightData.allFlights.filter(
       (flight) => flight[1] === selectedAirport
     ).length;
-    return { departing, arriving, total: departing + arriving };
-  }, [selectedAirport, context.flightData.flights]);
+
+    // Total is the sum of all flights (departing + arriving)
+    return {
+      departing,
+      arriving,
+      total: departing + arriving,
+    };
+  }, [selectedAirport, context.flightData.allFlights]);
 
   // Return null during SSR and initial render to prevent hydration mismatch
   if (!mounted || context.flightData.loading) return null;
@@ -71,7 +80,7 @@ export const AirportMarkers = () => {
           latitude={Number(selectedAirportData[3])}
           onClose={() => setSelectedAirport(null)}
           closeButton={true}
-          closeOnClick={false}
+          closeOnClick={true}
           className="airport-popup"
         >
           <div className="w-fit max-w-xs">
