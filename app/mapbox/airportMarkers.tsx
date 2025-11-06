@@ -84,7 +84,7 @@ export const AirportMarkers = () => {
           longitude={Number(selectedAirportData[4])}
           latitude={Number(selectedAirportData[3])}
           onClose={() => setSelectedAirport(null)}
-          closeButton={true}
+          closeButton={false}
           closeOnClick={true}
           className="airport-popup"
           offset={popupOffset}

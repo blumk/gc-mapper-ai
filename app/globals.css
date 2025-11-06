@@ -32,18 +32,74 @@ div[mapboxgl-children] {
   display: none; 
 }
 
+/* Dark themed Mapbox controls */
+.mapboxgl-ctrl-group {
+  background: rgba(17, 24, 39, 0.8) !important; /* gray-900 with transparency */
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(55, 65, 81, 0.5) !important; /* gray-700 */
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.mapboxgl-ctrl-group button {
+  background-color: transparent !important;
+  border: none !important;
+  color: rgba(209, 213, 219, 0.9) !important; /* gray-300 */
+  transition: all 0.2s ease !important;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background-color: rgba(55, 65, 81, 0.6) !important; /* gray-700 */
+  color: rgba(255, 255, 255, 1) !important;
+}
+
+.mapboxgl-ctrl-group button:active {
+  background-color: rgba(75, 85, 99, 0.8) !important; /* gray-600 */
+}
+
+.mapboxgl-ctrl-icon {
+  fill: rgba(209, 213, 219, 0.9) !important; /* gray-300 */
+  transition: fill 0.2s ease !important;
+}
+
+.mapboxgl-ctrl-group button:hover .mapboxgl-ctrl-icon {
+  fill: rgba(255, 255, 255, 1) !important;
+}
+
+.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-in,
+.mapboxgl-ctrl-group button.mapboxgl-ctrl-zoom-out,
+.mapboxgl-ctrl-group button.mapboxgl-ctrl-compass,
+.mapboxgl-ctrl-group button.mapboxgl-ctrl-fullscreen {
+  border-bottom: 1px solid rgba(55, 65, 81, 0.5) !important;
+}
+
+.mapboxgl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+
 /* Minimal CSS for Mapbox popup elements (not directly controllable via React/Tailwind) */
 .airport-popup .mapboxgl-popup-content {
   @apply rounded-lg shadow-lg transition-all duration-300;
   padding: 0 !important;
+  background: transparent !important;
+}
+
+.airport-popup .mapboxgl-popup-tip {
+  border-top-color: rgba(17, 24, 39, 0.6) !important; /* gray-900 with transparency to match popup */
+  border-top-width: 10px !important;
+  border-left-width: 10px !important;
+  border-right-width: 10px !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
+  border-bottom-color: transparent !important;
 }
 
 .airport-popup .mapboxgl-popup-close-button {
-  @apply w-7 h-7 text-base leading-7 p-0 m-2 text-gray-600 bg-white/95 rounded-full transition-all duration-200 z-[1002] block opacity-100;
+  @apply w-7 h-7 text-base leading-7 p-0 m-2 text-gray-400 bg-gray-800/80 rounded-full transition-all duration-200 z-[1002] block opacity-100;
 }
 
 .airport-popup .mapboxgl-popup-close-button:hover {
-  @apply text-black bg-white scale-110;
+  @apply text-gray-200 bg-gray-700/80 scale-110;
 }
 
 .mapboxgl-popup {
