@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Marker, Popup } from "react-map-gl";
 import { AirportIcon } from "./airportIcon";
-import { useFlightDataContext } from "./flightContext";
-import { useMap } from "./mapboxMap";
+import { useFlightDataContext, useSelectedAirport } from "./flightContext";
 
 // Helper to check if a code is valid (not empty or \N)
 const isValidCode = (code: string | undefined): boolean => {
@@ -11,8 +10,7 @@ const isValidCode = (code: string | undefined): boolean => {
 
 export const AirportMarkers = () => {
   const [mounted, setMounted] = useState(false);
-  const [selectedAirport, setSelectedAirport] = useState<null | string>(null);
-  const map = useMap();
+  const { selectedAirport, setSelectedAirport } = useSelectedAirport();
 
   const context = useFlightDataContext();
   const airports = context.flightData.airports;
@@ -22,24 +20,7 @@ export const AirportMarkers = () => {
     setMounted(true);
   }, []);
 
-  // Pan map to center selected airport with smooth animation
-  // Offset downward to center the popup in viewport (popup appears above marker)
-  useEffect(() => {
-    if (!mounted || !selectedAirport || !map) return;
-
-    const airportData = airports.get(selectedAirport);
-    if (airportData) {
-      const currentZoom = map.getZoom();
-      // Offset downward to center the popup in viewport
-      // Popup is ~200-250px tall, so offset by half that to center it
-      map.flyTo({
-        center: [Number(airportData[4]), Number(airportData[3])],
-        zoom: Math.max(currentZoom, 4), // Ensure minimum zoom level
-        duration: 1000, // Smooth 1 second transition
-        offset: [0, 100], // Offset downward to center popup in viewport
-      });
-    }
-  }, [selectedAirport, map, mounted, airports]);
+  // Note: Map zooming is handled in FlightPaths component to fit all highlighted routes
 
   // Use airport code as key instead of index for better React reconciliation
   // Depend on airports.size instead of entire Map object
@@ -113,20 +94,20 @@ export const AirportMarkers = () => {
           offset={popupOffset}
           maxWidth="none"
         >
-          <div className="w-fit max-w-xs p-4">
+          <div className="w-fit max-w-[120px] p-1.5">
             {/* Header */}
-            <div className="mb-3 pb-3 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-1 break-words">
+            <div className="mb-1 pb-1 border-b border-gray-200">
+              <h2 className="text-xs font-bold text-gray-900 mb-0.5 break-words leading-tight">
                 {selectedAirportData[1]}
               </h2>
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-1">
                 {isValidCode(selectedAirportData[0]) && (
-                  <p className="text-sm font-semibold text-sky-600 uppercase tracking-wide">
+                  <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wide">
                     {selectedAirportData[0]}
                   </p>
                 )}
                 {isValidCode(selectedAirportData[2]) && (
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">
+                  <p className="text-[9px] text-gray-500 uppercase tracking-wide">
                     {selectedAirportData[2]}
                   </p>
                 )}
@@ -134,64 +115,51 @@ export const AirportMarkers = () => {
             </div>
 
             {/* Flight Statistics */}
-            <div className="mb-3 pb-3 border-b border-gray-200">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Flight Connections
+            <div className="mb-1 pb-1 border-b border-gray-200">
+              <h3 className="text-[9px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
+                Flights
               </h3>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-0.5">
                 <div className="text-center">
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-xs font-bold text-gray-900">
                     {flightStats.departing}
                   </div>
-                  <div className="text-xs text-gray-600">Departing</div>
+                  <div className="text-[9px] text-gray-600">Out</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-xs font-bold text-gray-900">
                     {flightStats.arriving}
                   </div>
-                  <div className="text-xs text-gray-600">Arriving</div>
+                  <div className="text-[9px] text-gray-600">In</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-sky-600">
+                  <div className="text-xs font-bold text-sky-600">
                     {flightStats.total}
                   </div>
-                  <div className="text-xs text-gray-600">Total</div>
+                  <div className="text-[9px] text-gray-600">Tot</div>
                 </div>
               </div>
             </div>
 
             {/* Coordinates */}
-            <div className="mb-3 pb-3 border-b border-gray-200">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Location
-              </h3>
-              <div className="space-y-1 text-sm text-gray-700">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Latitude:</span>
-                  <span className="font-mono font-medium">
-                    {Number(selectedAirportData[3]).toFixed(4)}°
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Longitude:</span>
-                  <span className="font-mono font-medium">
-                    {Number(selectedAirportData[4]).toFixed(4)}°
-                  </span>
-                </div>
-              </div>
+            <div className="mb-1 text-[8px] text-gray-500">
+              {Number(selectedAirportData[3]).toFixed(1)}°
+              {Number(selectedAirportData[3]) >= 0 ? "N" : "S"}{" "}
+              {Math.abs(Number(selectedAirportData[4])).toFixed(1)}°
+              {Number(selectedAirportData[4]) >= 0 ? "E" : "W"}
             </div>
 
             {/* Links */}
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <a
                 target="_blank"
                 rel="noopener noreferrer"
                 href={`https://en.wikipedia.org/w/index.php?title=Special:Search&search=${encodeURIComponent(
                   selectedAirportData[1]
                 )} airport`}
-                className="flex-1 px-3 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md transition-colors duration-200 text-center"
+                className="flex-1 px-1.5 py-0.5 text-[9px] font-medium text-white bg-sky-600 hover:bg-sky-700 rounded transition-colors duration-200 text-center"
               >
-                Wikipedia
+                Wiki
               </a>
               <a
                 target="_blank"
@@ -199,9 +167,9 @@ export const AirportMarkers = () => {
                 href={`https://www.google.com/maps/search/?api=1&query=${Number(
                   selectedAirportData[3]
                 )},${Number(selectedAirportData[4])}`}
-                className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 text-center"
+                className="flex-1 px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors duration-200 text-center"
               >
-                Maps
+                Map
               </a>
             </div>
           </div>

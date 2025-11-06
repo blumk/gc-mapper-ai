@@ -155,10 +155,27 @@ export const useFlightDataContext = () => {
   return context;
 };
 
+// Context for selected airport (shared between AirportMarkers and FlightPaths)
+export const SelectedAirportContext = createContext<{
+  selectedAirport: string | null;
+  setSelectedAirport: (airport: string | null) => void;
+}>({
+  selectedAirport: null,
+  setSelectedAirport: () => {},
+});
+
+export const useSelectedAirport = () => {
+  return useContext(SelectedAirportContext);
+};
+
 export const FlightContextProvider = ({ children }: PropsWithChildren) => {
+  const [selectedAirport, setSelectedAirport] = useState<string | null>(null);
+  
   return (
     <FlightContext.Provider value={useFlightData()}>
-      {children}
+      <SelectedAirportContext.Provider value={{ selectedAirport, setSelectedAirport }}>
+        {children}
+      </SelectedAirportContext.Provider>
     </FlightContext.Provider>
   );
 };
