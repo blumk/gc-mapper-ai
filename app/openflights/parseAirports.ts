@@ -2,17 +2,19 @@
 const airportsCSV = require("./airports.csv");
 
 export const loadAirports = async () => {
-  const airports: string[][] = [];
-
   const start = performance.now();
-  return new Promise<string[][]>((resolve, reject) => {
-    airportsCSV.forEach((row: string[]) => {
-      airports.push([row[3], row[4], row[5], row[6]]);
-    });
 
-    console.log(`total airports: ${airports.length}`);
-    const end = performance.now();
-    console.log(`airport execution time: ${end - start} ms`);
-    resolve(airports);
-  });
+  // Use map instead of forEach + push for better performance
+  const airports: string[][] = airportsCSV.map((row: string[]) => [
+    row[3], // airport code
+    row[4], // airport name
+    row[5], // latitude
+    row[6], // longitude
+  ]);
+
+  const end = performance.now();
+  console.log(`total airports: ${airports.length}`);
+  console.log(`airport execution time: ${end - start} ms`);
+
+  return airports;
 };

@@ -28,36 +28,50 @@ const useFlightData = () => {
 
       const allAirports = await loadAirports();
       const flights = await loadUniqueFlightConnections();
-      const airports = new Map();
-      flights.map((flight) => {
-        airports.set(flight[0], undefined);
-        airports.set(flight[1], undefined);
-      });
-      console.log("Requested airports: ", airports.size);
 
-      // lookup airport data
+      // Build airport Map first for O(1) lookups - much faster than O(n*m)
+      const airportMap = new Map<string, string[]>();
       allAirports.forEach((airport) => {
-        if (airports.has(airport[0])) {
-          airports.set(airport[0], airport);
+        airportMap.set(airport[0], airport);
+      });
+
+      // Collect needed airport codes from flights
+      const neededAirportCodes = new Set<string>();
+      flights.forEach((flight) => {
+        neededAirportCodes.add(flight[0]);
+        neededAirportCodes.add(flight[1]);
+      });
+      console.log("Requested airports: ", neededAirportCodes.size);
+
+      // Filter to only airports we need and that exist
+      const validAirports = new Map<string, string[]>();
+      neededAirportCodes.forEach((code) => {
+        const airport = airportMap.get(code);
+        if (airport) {
+          validAirports.set(code, airport);
+        } else {
+          console.log("Airport not found: ", code);
         }
       });
-      // remove aiports without data
-      [...airports.keys()].forEach((airport) => {
-        if (airports.get(airport) === undefined) {
-          console.log("Airport not found: ", airport);
-          airports.delete(airport);
-          // TODO remove flight
-        }
+
+      // Filter out flights where either airport is missing
+      const validFlights = flights.filter((flight) => {
+        return validAirports.has(flight[0]) && validAirports.has(flight[1]);
       });
-      // update state
-      console.log("Valid airports: ", airports.size);
-      setFlightData({ loading: false, airports, flights });
+
+      console.log("Valid airports: ", validAirports.size);
+      console.log("Valid flights: ", validFlights.length);
 
       const end = performance.now();
       console.log(`Data load complete: ${end - start} ms`);
+
+      setFlightData({
+        loading: false,
+        airports: validAirports,
+        flights: validFlights,
+      });
     };
 
-    console.log("xxxx LOAD");
     loadData();
   }, []);
 
