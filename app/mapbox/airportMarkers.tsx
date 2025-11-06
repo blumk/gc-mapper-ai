@@ -108,7 +108,7 @@ export const AirportMarkers = () => {
           closeButton={true}
           closeOnClick={true}
           className="airport-popup"
-          offset={[0, -10]}
+          offset={[0, -10] as [number, number]}
           maxWidth="none"
         >
           <div className="w-fit max-w-xs p-4">
