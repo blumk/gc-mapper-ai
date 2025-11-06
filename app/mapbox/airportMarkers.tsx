@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Marker, Popup } from "react-map-gl";
 import { AirportIcon } from "./airportIcon";
 import { useFlightDataContext, useSelectedAirport } from "./flightContext";
+import { useMap } from "./mapboxMap";
 
 // Helper to check if a code is valid (not empty or \N)
 const isValidCode = (code: string | undefined): boolean => {
@@ -11,6 +12,7 @@ const isValidCode = (code: string | undefined): boolean => {
 export const AirportMarkers = () => {
   const [mounted, setMounted] = useState(false);
   const { selectedAirport, setSelectedAirport } = useSelectedAirport();
+  const map = useMap();
 
   const context = useFlightDataContext();
   const airports = context.flightData.airports;
@@ -51,6 +53,8 @@ export const AirportMarkers = () => {
     ? airports.get(selectedAirport)
     : null;
 
+  // Note: Map centering is handled in FlightPaths component to coordinate with route fitting
+
   // Calculate flight statistics for the selected airport
   // Use allFlights (both directions) for accurate statistics
   const flightStats = useMemo(() => {
@@ -77,8 +81,6 @@ export const AirportMarkers = () => {
   // Return null during SSR and initial render to prevent hydration mismatch
   if (!mounted || context.flightData.loading) return null;
 
-  const popupOffset: [number, number] = [0, -10];
-
   return (
     <>
       {pins}
@@ -91,7 +93,7 @@ export const AirportMarkers = () => {
           closeButton={true}
           closeOnClick={true}
           className="airport-popup"
-          offset={popupOffset}
+          offset={[0, -20]}
           maxWidth="none"
         >
           <div className="w-fit max-w-[120px] p-1.5">
