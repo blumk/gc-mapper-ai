@@ -113,6 +113,44 @@ export const AirportMarkers = () => {
     };
   }, [selectedAirport, context.flightData.allFlights]);
 
+  // Get top 3 connected airports with flight counts
+  const topAirports = useMemo(() => {
+    if (!selectedAirport || !context.flightData.allFlights || !airports) {
+      return [];
+    }
+
+    // Count flights to/from each connected airport
+    const airportCounts = new Map<string, number>();
+
+    context.flightData.allFlights.forEach((flight) => {
+      if (flight[0] === selectedAirport) {
+        const count = airportCounts.get(flight[1]) || 0;
+        airportCounts.set(flight[1], count + 1);
+      } else if (flight[1] === selectedAirport) {
+        const count = airportCounts.get(flight[0]) || 0;
+        airportCounts.set(flight[0], count + 1);
+      }
+    });
+
+    // Convert to array and sort by flight count (descending)
+    const sorted = Array.from(airportCounts.entries())
+      .map(([code, count]) => {
+        const airportData = airports.get(code);
+        return {
+          code,
+          count,
+          name: airportData?.[1] || code,
+          iata: airportData?.[0],
+          icao: airportData?.[2],
+        };
+      })
+      .filter((airport) => airport.name) // Filter out invalid airports
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3); // Top 3
+
+    return sorted;
+  }, [selectedAirport, context.flightData.allFlights, airports]);
+
   // Return null during SSR and initial render to prevent hydration mismatch
   if (!mounted || context.flightData.loading) return null;
 
@@ -179,6 +217,49 @@ export const AirportMarkers = () => {
                 </div>
               </div>
             </div>
+
+            {/* Top Connected Airports */}
+            {topAirports.length > 0 && (
+              <div className="mb-1 pb-1 border-b border-gray-200">
+                <h3 className="text-[9px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
+                  Top Routes
+                </h3>
+                <div className="space-y-0.5">
+                  {topAirports.map((airport, index) => (
+                    <button
+                      key={airport.code}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedAirport(airport.code);
+                      }}
+                      className="flex items-center justify-between text-[8px] w-full text-left hover:bg-gray-50 rounded px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <span className="text-gray-400 font-mono">
+                          {index + 1}.
+                        </span>
+                        {isValidCode(airport.iata) ? (
+                          <span className="font-semibold text-sky-600 uppercase truncate hover:text-sky-700">
+                            {airport.iata}
+                          </span>
+                        ) : isValidCode(airport.icao) ? (
+                          <span className="font-semibold text-sky-600 uppercase truncate hover:text-sky-700">
+                            {airport.icao}
+                          </span>
+                        ) : (
+                          <span className="font-semibold text-sky-600 uppercase truncate hover:text-sky-700">
+                            {airport.code}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-gray-500 font-medium ml-1">
+                        {airport.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Coordinates */}
             <div className="mb-1 text-[8px] text-gray-500">
