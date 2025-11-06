@@ -125,10 +125,9 @@ export const FlightPaths = () => {
       const sw: [number, number] = [minLon, minLat];
       const ne: [number, number] = [maxLon, maxLat];
 
-      // Minimum zoom level to prevent zooming out too far (continent level, not entire globe)
-      const minZoom = 2.5;
-
       // Fit bounds with generous padding to ensure popup space
+      // Set minZoom to prevent zooming out too far (continent level, not entire globe)
+      // Single smooth transition - no post-render adjustments
       map.fitBounds([sw, ne], {
         padding: {
           top: Math.max(totalSpaceAbove, viewportHeight / 3), // Very generous top padding
@@ -138,121 +137,8 @@ export const FlightPaths = () => {
         },
         duration: 1000,
         maxZoom: 8,
+        minZoom: 2.5, // Prevent zooming out to show entire globe
       });
-
-      // After fitBounds, check and cap zoom if it went too far out
-      const handleZoomCheck = () => {
-        const currentZoom = map.getZoom();
-
-        if (currentZoom < minZoom) {
-          // Calculate center of bounds
-          const centerLon = (bounds[0] + bounds[2]) / 2;
-          const centerLat = (bounds[1] + bounds[3]) / 2;
-
-          // Use flyTo with minimum zoom to prevent showing entire globe
-          map.flyTo({
-            center: [centerLon, centerLat],
-            zoom: minZoom,
-            duration: 300,
-          });
-        }
-        map.off("moveend", handleZoomCheck);
-      };
-
-      map.once("moveend", handleZoomCheck);
-
-      // After fitBounds, verify and adjust using actual popup DOM position
-      const verifyAndAdjust = () => {
-        // Wait for popup to render, then check actual DOM position
-        const checkPopup = () => {
-          try {
-            // Find the actual popup DOM element
-            const popupElement = document.querySelector(
-              ".airport-popup .mapboxgl-popup"
-            ) as HTMLElement;
-
-            if (!popupElement) {
-              // If popup not found yet, try again after a short delay
-              setTimeout(checkPopup, 50);
-              return;
-            }
-
-            // Get actual popup position from DOM
-            const popupRect = popupElement.getBoundingClientRect();
-            const viewportRect = {
-              top: 0,
-              left: 0,
-              bottom: viewportHeight,
-              right: viewportWidth,
-            };
-
-            // Check if popup is outside viewport
-            const margin = 20;
-            let needsAdjustment = false;
-            let deltaX = 0;
-            let deltaY = 0;
-
-            // Check each edge
-            if (popupRect.top < viewportRect.top + margin) {
-              deltaY = viewportRect.top + margin - popupRect.top;
-              needsAdjustment = true;
-            }
-
-            if (popupRect.bottom > viewportRect.bottom - margin) {
-              deltaY = viewportRect.bottom - margin - popupRect.bottom;
-              needsAdjustment = true;
-            }
-
-            if (popupRect.left < viewportRect.left + margin) {
-              deltaX = viewportRect.left + margin - popupRect.left;
-              needsAdjustment = true;
-            }
-
-            if (popupRect.right > viewportRect.right - margin) {
-              deltaX = viewportRect.right - margin - popupRect.right;
-              needsAdjustment = true;
-            }
-
-            // Adjust map if popup is outside viewport
-            if (needsAdjustment) {
-              const currentBounds = map.getBounds();
-              if (!currentBounds) return;
-
-              const ne = currentBounds.getNorthEast();
-              const sw = currentBounds.getSouthWest();
-              const latRange = ne.lat - sw.lat;
-              const lonRange = ne.lng - sw.lng;
-
-              // Convert pixel deltas to geographic deltas
-              const latDelta = -(deltaY / viewportHeight) * latRange;
-              const lonDelta = (deltaX / viewportWidth) * lonRange;
-
-              const currentCenter = map.getCenter();
-              map.flyTo({
-                center: [
-                  currentCenter.lng + lonDelta,
-                  currentCenter.lat + latDelta,
-                ],
-                zoom: map.getZoom(),
-                duration: 400,
-              });
-            }
-          } catch (error) {
-            console.error("Error verifying popup position:", error);
-          }
-        };
-
-        // Start checking after a short delay to ensure popup is rendered
-        setTimeout(checkPopup, 150);
-      };
-
-      // Use moveend event to check after animation completes
-      const handleMoveEnd = () => {
-        verifyAndAdjust();
-        map.off("moveend", handleMoveEnd);
-      };
-
-      map.once("moveend", handleMoveEnd);
     } catch (error) {
       console.error("Error fitting bounds:", error);
     }
