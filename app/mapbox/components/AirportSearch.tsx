@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useFlightDataContext, useSelectedAirport } from "../flightContext";
 
 // Normalize string by removing diacritics for search matching
@@ -10,65 +10,161 @@ const normalizeString = (str: string): string => {
     .toLowerCase();
 };
 
+interface NormalizedAirport {
+  code: string;
+  data: string[];
+  normalizedIata: string;
+  normalizedName: string;
+  normalizedIcao: string;
+}
+
 export const AirportSearch = () => {
   const context = useFlightDataContext();
   const { setSelectedAirport } = useSelectedAirport();
   const { airports } = context.flightData;
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Filter airports based on search query (diacritic-insensitive)
-  const filteredAirports = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-
-    const normalizedQuery = normalizeString(searchQuery);
-    const results: Array<{ code: string; data: string[]; match: string }> = [];
-
+  // Pre-compute normalized strings for all airports (memoized)
+  const normalizedAirports = useMemo(() => {
+    const normalized: NormalizedAirport[] = [];
     airports.forEach((data, icaoCode) => {
-      const iata = data[0] || "";
-      const name = data[1] || "";
-      const icao = icaoCode;
+      normalized.push({
+        code: icaoCode,
+        data,
+        normalizedIata: normalizeString(data[0] || ""),
+        normalizedName: normalizeString(data[1] || ""),
+        normalizedIcao: normalizeString(icaoCode),
+      });
+    });
+    return normalized;
+  }, [airports]);
 
-      const normalizedIata = normalizeString(iata);
-      const normalizedName = normalizeString(name);
-      const normalizedIcao = normalizeString(icao);
+  // Debounce search query (250ms delay)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
 
-      if (
-        normalizedIata.includes(normalizedQuery) ||
-        normalizedIcao.includes(normalizedQuery) ||
-        normalizedName.includes(normalizedQuery)
-      ) {
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 250);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Filter airports based on debounced search query (optimized)
+  const filteredAirports = useMemo(() => {
+    if (!debouncedQuery.trim()) return [];
+
+    const normalizedQuery = normalizeString(debouncedQuery);
+    const queryLength = normalizedQuery.length;
+    const results: Array<{ code: string; data: string[]; match: string; matchType: "iata" | "icao" | "name" }> = [];
+
+    // Early exit: if query is too short, don't search
+    if (queryLength < 1) return [];
+
+    for (const airport of normalizedAirports) {
+      // Early exit: check if any field starts with query (fastest check)
+      const iataStarts = airport.normalizedIata.startsWith(normalizedQuery);
+      const icaoStarts = airport.normalizedIcao.startsWith(normalizedQuery);
+      const nameStarts = airport.normalizedName.startsWith(normalizedQuery);
+
+      if (iataStarts || icaoStarts || nameStarts) {
+        // Prefer exact start matches
         let match = "";
-        if (normalizedIata.includes(normalizedQuery)) match = iata;
-        else if (normalizedIcao.includes(normalizedQuery)) match = icao;
-        else match = name;
+        let matchType: "iata" | "icao" | "name" = "name";
+        
+        if (iataStarts) {
+          match = airport.data[0] || "";
+          matchType = "iata";
+        } else if (icaoStarts) {
+          match = airport.code;
+          matchType = "icao";
+        } else {
+          match = airport.data[1] || "";
+          matchType = "name";
+        }
 
         results.push({
-          code: icaoCode,
-          data,
+          code: airport.code,
+          data: airport.data,
           match,
+          matchType,
         });
-      }
-    });
+      } else {
+        // Fallback to includes() only if no start match
+        const iataIncludes = airport.normalizedIata.includes(normalizedQuery);
+        const icaoIncludes = airport.normalizedIcao.includes(normalizedQuery);
+        const nameIncludes = airport.normalizedName.includes(normalizedQuery);
 
-    // Sort by relevance (exact matches first, then by match type)
+        if (iataIncludes || icaoIncludes || nameIncludes) {
+          let match = "";
+          let matchType: "iata" | "icao" | "name" = "name";
+          
+          if (iataIncludes) {
+            match = airport.data[0] || "";
+            matchType = "iata";
+          } else if (icaoIncludes) {
+            match = airport.code;
+            matchType = "icao";
+          } else {
+            match = airport.data[1] || "";
+            matchType = "name";
+          }
+
+          results.push({
+            code: airport.code,
+            data: airport.data,
+            match,
+            matchType,
+          });
+        }
+      }
+
+      // Early exit: if we have enough results, stop searching
+      if (results.length >= 20) break;
+    }
+
+    // Sort by relevance (exact start matches first, then by match type priority)
     return results
       .sort((a, b) => {
         const aNormalized = normalizeString(a.match);
         const bNormalized = normalizeString(b.match);
         const queryNormalized = normalizedQuery;
 
+        // Exact match priority
         const aExact = aNormalized === queryNormalized;
         const bExact = bNormalized === queryNormalized;
         if (aExact && !bExact) return -1;
         if (!aExact && bExact) return 1;
+
+        // Start match priority
+        const aStarts = aNormalized.startsWith(queryNormalized);
+        const bStarts = bNormalized.startsWith(queryNormalized);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+
+        // Match type priority: IATA > ICAO > Name
+        const typePriority = { iata: 0, icao: 1, name: 2 };
+        const aPriority = typePriority[a.matchType];
+        const bPriority = typePriority[b.matchType];
+        if (aPriority !== bPriority) return aPriority - bPriority;
+
+        // Alphabetical
         return aNormalized.localeCompare(bNormalized);
       })
       .slice(0, 10); // Limit to 10 results
-  }, [searchQuery, airports]);
+  }, [debouncedQuery, normalizedAirports]);
 
   // Handle click outside to close
   useEffect(() => {
@@ -79,6 +175,7 @@ export const AirportSearch = () => {
       ) {
         setIsExpanded(false);
         setSearchQuery("");
+        setDebouncedQuery("");
         setFocusedIndex(-1);
       }
     };
@@ -97,17 +194,19 @@ export const AirportSearch = () => {
     }
   }, [isExpanded]);
 
-  const handleSelect = (icaoCode: string) => {
+  const handleSelect = useCallback((icaoCode: string) => {
     setSelectedAirport(icaoCode);
     setIsExpanded(false);
     setSearchQuery("");
+    setDebouncedQuery("");
     setFocusedIndex(-1);
-  };
+  }, [setSelectedAirport]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsExpanded(false);
       setSearchQuery("");
+      setDebouncedQuery("");
       setFocusedIndex(-1);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -177,6 +276,7 @@ export const AirportSearch = () => {
               <button
                 onClick={() => {
                   setSearchQuery("");
+                  setDebouncedQuery("");
                   setFocusedIndex(-1);
                 }}
                 className="flex-shrink-0 text-gray-400 hover:text-gray-200 transition-colors"
