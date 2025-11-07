@@ -39,6 +39,8 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
               )} airport`}
               target="_blank"
               rel="noopener noreferrer"
+              tabIndex={-1}
+              onFocus={(e) => e.target.blur()}
               className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide hover:text-blue-400 transition-colors duration-200 cursor-pointer"
               onClick={(e) => e.stopPropagation()}
             >
