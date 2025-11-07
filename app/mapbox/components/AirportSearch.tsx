@@ -68,7 +68,12 @@ export const AirportSearch = () => {
 
     const normalizedQuery = normalizeString(debouncedQuery);
     const queryLength = normalizedQuery.length;
-    const results: Array<{ code: string; data: string[]; match: string; matchType: "iata" | "icao" | "name" }> = [];
+    const results: Array<{
+      code: string;
+      data: string[];
+      match: string;
+      matchType: "iata" | "icao" | "name";
+    }> = [];
 
     // Early exit: if query is too short, don't search
     if (queryLength < 1) return [];
@@ -83,7 +88,7 @@ export const AirportSearch = () => {
         // Prefer exact start matches
         let match = "";
         let matchType: "iata" | "icao" | "name" = "name";
-        
+
         if (iataStarts) {
           match = airport.data[0] || "";
           matchType = "iata";
@@ -110,7 +115,7 @@ export const AirportSearch = () => {
         if (iataIncludes || icaoIncludes || nameIncludes) {
           let match = "";
           let matchType: "iata" | "icao" | "name" = "name";
-          
+
           if (iataIncludes) {
             match = airport.data[0] || "";
             matchType = "iata";
@@ -194,13 +199,16 @@ export const AirportSearch = () => {
     }
   }, [isExpanded]);
 
-  const handleSelect = useCallback((icaoCode: string) => {
-    setSelectedAirport(icaoCode);
-    setIsExpanded(false);
-    setSearchQuery("");
-    setDebouncedQuery("");
-    setFocusedIndex(-1);
-  }, [setSelectedAirport]);
+  const handleSelect = useCallback(
+    (icaoCode: string) => {
+      setSelectedAirport(icaoCode);
+      setIsExpanded(false);
+      setSearchQuery("");
+      setDebouncedQuery("");
+      setFocusedIndex(-1);
+    },
+    [setSelectedAirport]
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
