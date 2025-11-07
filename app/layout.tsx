@@ -7,8 +7,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GCM - Great Circle Mapper",
-  description: "",
+  title: "Flight Route Mapper",
+  description:
+    "Visualize flight routes as great circle arcs on an interactive world map. Search airports, explore connections, and see the shortest paths between destinations.",
 };
 
 export default function RootLayout({
