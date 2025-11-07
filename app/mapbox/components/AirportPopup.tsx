@@ -116,20 +116,25 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                     <span className="text-gray-600 font-mono">
                       {index + 1}.
                     </span>
-                    {isValidCode(airport.iata) ? (
-                      <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
-                        {airport.iata}
-                      </span>
-                    ) : isValidCode(airport.icao) ? (
-                      <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
-                        {airport.icao}
-                      </span>
-                    ) : (
-                      <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
-                        {airport.code}
-                      </span>
-                    )}
-                    <span className="text-gray-400 font-medium">
+                    <div className="flex items-baseline gap-1.5 flex-1 min-w-0">
+                      {isValidCode(airport.iata) && (
+                        <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
+                          {airport.iata}
+                        </span>
+                      )}
+                      {isValidCode(airport.icao) && (
+                        <span className="text-gray-500 uppercase truncate">
+                          {airport.icao}
+                        </span>
+                      )}
+                      {!isValidCode(airport.iata) &&
+                        !isValidCode(airport.icao) && (
+                          <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
+                            {airport.code}
+                          </span>
+                        )}
+                    </div>
+                    <span className="text-gray-400 font-medium flex-shrink-0">
                       {airport.count}
                     </span>
                   </button>
@@ -187,20 +192,25 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                     <span className="text-gray-600 font-mono">
                       {index + 1}.
                     </span>
-                    {isValidCode(airport.iata) ? (
-                      <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
-                        {airport.iata}
-                      </span>
-                    ) : isValidCode(airport.icao) ? (
-                      <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
-                        {airport.icao}
-                      </span>
-                    ) : (
-                      <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
-                        {airport.code}
-                      </span>
-                    )}
-                    <span className="text-gray-400 font-medium">
+                    <div className="flex items-baseline gap-1.5 flex-1 min-w-0">
+                      {isValidCode(airport.iata) && (
+                        <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
+                          {airport.iata}
+                        </span>
+                      )}
+                      {isValidCode(airport.icao) && (
+                        <span className="text-gray-500 uppercase truncate">
+                          {airport.icao}
+                        </span>
+                      )}
+                      {!isValidCode(airport.iata) &&
+                        !isValidCode(airport.icao) && (
+                          <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
+                            {airport.code}
+                          </span>
+                        )}
+                    </div>
+                    <span className="text-gray-400 font-medium flex-shrink-0">
                       {airport.count}
                     </span>
                   </button>
