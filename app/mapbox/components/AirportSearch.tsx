@@ -60,7 +60,7 @@ export const AirportSearch = () => {
         const aNormalized = normalizeString(a.match);
         const bNormalized = normalizeString(b.match);
         const queryNormalized = normalizedQuery;
-        
+
         const aExact = aNormalized === queryNormalized;
         const bExact = bNormalized === queryNormalized;
         if (aExact && !bExact) return -1;
@@ -85,7 +85,8 @@ export const AirportSearch = () => {
 
     if (isExpanded) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isExpanded]);
 
@@ -123,10 +124,7 @@ export const AirportSearch = () => {
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="absolute top-4 right-4 z-10"
-    >
+    <div ref={containerRef} className="absolute top-4 right-4 z-10">
       {!isExpanded ? (
         <button
           onClick={() => setIsExpanded(true)}
