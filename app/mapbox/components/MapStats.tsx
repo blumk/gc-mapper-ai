@@ -24,7 +24,7 @@ export const MapStats = () => {
       {/* Mobile: Collapsible button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="sm:hidden px-3 py-2 flex items-center justify-between text-xs whitespace-nowrap"
+        className="sm:hidden px-3 py-2 flex items-center justify-between text-xs whitespace-nowrap w-full"
         aria-label={isExpanded ? "Collapse stats" : "Expand stats"}
       >
         <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { MapboxMap } from "./mapboxMap";
 import { AirportMarkers } from "./airportMarkers";
 import { FlightPaths } from "./flightPaths";
 import { MapStats } from "./components/MapStats";
+import { AirportSearch } from "./components/AirportSearch";
 
 export default function FlightMap() {
   return (
@@ -12,6 +13,7 @@ export default function FlightMap() {
         <FlightPaths />
       </MapboxMap>
       <MapStats />
+      <AirportSearch />
     </div>
   );
 }
