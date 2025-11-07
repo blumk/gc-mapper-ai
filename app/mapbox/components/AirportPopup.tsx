@@ -21,7 +21,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
         </h2>
         <div className="flex items-baseline gap-1">
           {isValidCode(airportData[0]) && (
-            <p className="text-[10px] font-semibold text-cyan-500 uppercase tracking-wide">
+            <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">
               {airportData[0]}
             </p>
           )}
@@ -52,7 +52,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
             <div className="text-[9px] text-gray-500">In</div>
           </div>
           <div className="text-center">
-            <div className="text-xs font-bold text-cyan-500">
+            <div className="text-xs font-bold text-blue-500">
               {flightStats.total}
             </div>
             <div className="text-[9px] text-gray-500">Tot</div>
@@ -85,15 +85,15 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                 <div className="flex items-center gap-1 flex-1 min-w-0">
                   <span className="text-gray-600 font-mono">{index + 1}.</span>
                   {isValidCode(airport.iata) ? (
-                    <span className="font-semibold text-cyan-500 uppercase truncate hover:text-cyan-400">
+                    <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
                       {airport.iata}
                     </span>
                   ) : isValidCode(airport.icao) ? (
-                    <span className="font-semibold text-cyan-500 uppercase truncate hover:text-cyan-400">
+                    <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
                       {airport.icao}
                     </span>
                   ) : (
-                    <span className="font-semibold text-cyan-500 uppercase truncate hover:text-cyan-400">
+                    <span className="font-semibold text-blue-500 uppercase truncate hover:text-blue-400">
                       {airport.code}
                     </span>
                   )}
@@ -123,7 +123,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
           href={`https://en.wikipedia.org/w/index.php?title=Special:Search&search=${encodeURIComponent(
             airportData[1]
           )} airport`}
-          className="flex-1 px-1.5 py-0.5 text-[9px] font-medium text-white bg-cyan-600 hover:bg-cyan-500 rounded transition-colors duration-200 text-center"
+          className="flex-1 px-1.5 py-0.5 text-[9px] font-medium text-white bg-blue-600 hover:bg-blue-500 rounded transition-colors duration-200 text-center"
         >
           Wiki
         </a>

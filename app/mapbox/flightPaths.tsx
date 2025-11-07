@@ -75,8 +75,8 @@ export const FlightPaths = () => {
           }}
           paint={{
             "line-color": selectedAirport
-              ? "rgba(14, 165, 233, 0.25)" // sky-500 with low opacity for dimmed
-              : "rgba(14, 165, 233, 0.6)", // sky-500 with medium opacity
+              ? "rgba(59, 130, 246, 0.25)" // blue-500 with low opacity for dimmed
+              : "rgba(59, 130, 246, 0.6)", // blue-500 with medium opacity
             "line-width": 1.5,
           }}
         />
@@ -94,7 +94,7 @@ export const FlightPaths = () => {
               "line-cap": "round",
             }}
             paint={{
-              "line-color": "rgba(6, 182, 212, 1)", // cyan-500 darker for highlighted routes
+              "line-color": "rgba(37, 99, 235, 1)", // blue-600 for highlighted routes
               "line-width": 3,
             }}
           />
