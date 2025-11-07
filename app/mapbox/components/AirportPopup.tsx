@@ -25,10 +25,10 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
   const hasMoreInbound = topAirports.inbound.length > 3;
 
   return (
-    <div className="w-fit max-w-[180px] p-1.5 bg-gray-900/60 backdrop-blur-md rounded-lg">
+    <div className="w-fit max-w-[180px] sm:max-w-[200px] p-1.5 sm:p-2 bg-gray-900/60 backdrop-blur-md rounded-lg">
       {/* Header */}
       <div className="mb-1 pb-1 border-b border-gray-800/50">
-        <h2 className="text-xs font-bold text-gray-100 mb-0.5 break-words leading-tight">
+        <h2 className="text-xs sm:text-sm font-bold text-gray-100 mb-0.5 break-words leading-tight">
           {airportData[1]}
         </h2>
         <div className="flex items-baseline gap-1.5 flex-wrap">
@@ -41,18 +41,18 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
               rel="noopener noreferrer"
               tabIndex={-1}
               onFocus={(e) => e.target.blur()}
-              className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide hover:text-blue-400 transition-colors duration-200 cursor-pointer"
+              className="text-[10px] sm:text-xs font-semibold text-blue-500 uppercase tracking-wide hover:text-blue-400 transition-colors duration-200 cursor-pointer"
               onClick={(e) => e.stopPropagation()}
             >
               {airportData[0]}
             </a>
           )}
           {isValidCode(airportData[2]) && (
-            <p className="text-[9px] text-gray-500 uppercase tracking-wide">
+            <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-wide">
               {airportData[2]}
             </p>
           )}
-          <span className="text-[8px] text-gray-600">
+          <span className="text-[8px] sm:text-[9px] text-gray-600">
             {Number(airportData[3]).toFixed(1)}°
             {Number(airportData[3]) >= 0 ? "N" : "S"}{" "}
             {Math.abs(Number(airportData[4])).toFixed(1)}°
@@ -63,27 +63,27 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
 
       {/* Flight Statistics */}
       <div className="mb-1 pb-1 border-b border-gray-800/50">
-        <h3 className="text-[9px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
+        <h3 className="text-[9px] sm:text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
           Flights
         </h3>
         <div className="grid grid-cols-3 gap-0.5">
           <div className="text-center">
-            <div className="text-xs font-bold text-gray-200">
+            <div className="text-xs sm:text-sm font-bold text-gray-200">
               {flightStats.departing}
             </div>
-            <div className="text-[9px] text-gray-500">Out</div>
+            <div className="text-[9px] sm:text-[10px] text-gray-500">Out</div>
           </div>
           <div className="text-center">
-            <div className="text-xs font-bold text-gray-200">
+            <div className="text-xs sm:text-sm font-bold text-gray-200">
               {flightStats.arriving}
             </div>
-            <div className="text-[9px] text-gray-500">In</div>
+            <div className="text-[9px] sm:text-[10px] text-gray-500">In</div>
           </div>
           <div className="text-center">
-            <div className="text-xs font-bold text-blue-500">
+            <div className="text-xs sm:text-sm font-bold text-blue-500">
               {flightStats.total}
             </div>
-            <div className="text-[9px] text-gray-500">Tot</div>
+            <div className="text-[9px] sm:text-[10px] text-gray-500">Tot</div>
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
           <div className="grid grid-cols-2 gap-4">
             {/* Outbound Column */}
             <div className="flex-1">
-              <div className="text-[8px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
+              <div className="text-[8px] sm:text-[9px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
                 Outbound
               </div>
               <div className="space-y-0.5 max-h-[200px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -111,7 +111,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                       e.target.blur();
                     }}
                     autoFocus={false}
-                    className="flex items-center gap-1.5 text-[8px] w-full text-left hover:bg-gray-800/60 rounded px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
+                    className="flex items-center gap-1.5 text-[8px] sm:text-[9px] w-full text-left hover:bg-gray-800/60 rounded px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
                   >
                     <span className="text-gray-600 font-mono">
                       {index + 1}.
@@ -142,7 +142,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                       e.stopPropagation();
                       setExpandedOutbound(!expandedOutbound);
                     }}
-                    className="text-[7px] text-gray-500 hover:text-gray-400 w-full text-left px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
+                    className="text-[7px] sm:text-[8px] text-gray-500 hover:text-gray-400 w-full text-left px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
                   >
                     {expandedOutbound
                       ? `Show less (${topAirports.outbound.length - 3} hidden)`
@@ -165,7 +165,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
 
             {/* Inbound Column */}
             <div className="flex-1">
-              <div className="text-[8px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
+              <div className="text-[8px] sm:text-[9px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
                 Inbound
               </div>
               <div className="space-y-0.5 max-h-[200px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -182,7 +182,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                       e.target.blur();
                     }}
                     autoFocus={false}
-                    className="flex items-center gap-1.5 text-[8px] w-full text-left hover:bg-gray-800/60 rounded px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
+                    className="flex items-center gap-1.5 text-[8px] sm:text-[9px] w-full text-left hover:bg-gray-800/60 rounded px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
                   >
                     <span className="text-gray-600 font-mono">
                       {index + 1}.
@@ -213,7 +213,7 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                       e.stopPropagation();
                       setExpandedInbound(!expandedInbound);
                     }}
-                    className="text-[7px] text-gray-500 hover:text-gray-400 w-full text-left px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
+                    className="text-[7px] sm:text-[8px] text-gray-500 hover:text-gray-400 w-full text-left px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
                   >
                     {expandedInbound
                       ? `Show less (${topAirports.inbound.length - 3} hidden)`

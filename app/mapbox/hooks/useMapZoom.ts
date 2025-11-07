@@ -51,10 +51,10 @@ export const useMapZoom = (
           ],
           {
             padding: {
-              top: popupSpace + 50, // Extra margin to ensure popup always fits
-              bottom: 100,
-              left: 150,
-              right: 150,
+              top: popupSpace + 100,
+              bottom: 150,
+              left: 200,
+              right: 200,
             },
             duration: 1000,
             maxZoom: 7.5, // Slightly lower to ensure popup fits
