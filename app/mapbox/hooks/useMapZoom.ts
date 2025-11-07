@@ -30,19 +30,6 @@ export const useMapZoom = (
     const viewportHeight = container.clientHeight;
     const popupSpace = 400; // Space needed for popup above marker
 
-    // Check if popup is visible and zoom out if needed
-    const ensurePopupVisible = () => {
-      const airportPoint = map.project([airportLon, airportLat]);
-      if (airportPoint.y < popupSpace) {
-        const currentZoom = map.getZoom();
-        map.flyTo({
-          center: [airportLon, airportLat],
-          zoom: currentZoom - 1,
-          duration: 500,
-        });
-      }
-    };
-
     if (highlightedFlights?.features.length) {
       try {
         const bounds = bbox(highlightedFlights);
@@ -56,33 +43,38 @@ export const useMapZoom = (
           features: [...highlightedFlights.features, airportFeature],
         });
 
+        // Single smooth animation with popup space included
         map.fitBounds(
           [
             [allBounds[0], allBounds[1]],
             [allBounds[2], allBounds[3]],
           ],
           {
-            padding: { top: popupSpace, bottom: 100, left: 150, right: 150 },
+            padding: {
+              top: popupSpace + 50, // Extra margin to ensure popup always fits
+              bottom: 100,
+              left: 150,
+              right: 150,
+            },
             duration: 1000,
-            maxZoom: 8,
+            maxZoom: 7.5, // Slightly lower to ensure popup fits
             minZoom: 2.5,
           }
         );
-
-        // Check popup visibility after animation
-        setTimeout(ensurePopupVisible, 1100);
       } catch (error) {
         console.error("Error fitting bounds:", error);
       }
     } else {
-      // No routes: center on airport
+      // No routes: center on airport with popup space
+      // Calculate position that ensures popup fits
+      const currentZoom = map.getZoom();
+      const targetZoom = Math.min(currentZoom, 5.5); // Lower zoom to ensure popup fits
+
       map.flyTo({
         center: [airportLon, airportLat],
-        zoom: Math.min(map.getZoom(), 6),
+        zoom: targetZoom,
         duration: 1000,
       });
-
-      setTimeout(ensurePopupVisible, 1100);
     }
   }, [
     selectedAirport,
