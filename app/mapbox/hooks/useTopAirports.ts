@@ -53,8 +53,7 @@ export const useTopAirports = (limit: number = 3): TopAirportsResult => {
         };
       })
       .filter((airport) => airport.name)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, limit);
+      .sort((a, b) => b.count - a.count);
 
     const topInbound = Array.from(inboundCounts.entries())
       .map(([code, count]) => {
@@ -68,10 +67,15 @@ export const useTopAirports = (limit: number = 3): TopAirportsResult => {
         };
       })
       .filter((airport) => airport.name)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, limit);
+      .sort((a, b) => b.count - a.count);
 
-    return { outbound: topOutbound, inbound: topInbound };
+    // Apply limit only if it's a reasonable number (not Infinity or very high)
+    const limitedOutbound =
+      limit > 1000 ? topOutbound : topOutbound.slice(0, limit);
+    const limitedInbound =
+      limit > 1000 ? topInbound : topInbound.slice(0, limit);
+
+    return { outbound: limitedOutbound, inbound: limitedInbound };
   }, [selectedAirport, context.flightData.allFlights, airports, limit]);
 };
 

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSelectedAirport } from "../flightContext";
 import { isValidCode } from "../utils";
 import { useFlightStats } from "../hooks/useFlightStats";
@@ -10,7 +11,18 @@ interface AirportPopupProps {
 export const AirportPopup = ({ airportData }: AirportPopupProps) => {
   const { setSelectedAirport } = useSelectedAirport();
   const flightStats = useFlightStats();
-  const topAirports = useTopAirports(3);
+  const topAirports = useTopAirports(10000); // Get all routes (no practical limit)
+  const [expandedOutbound, setExpandedOutbound] = useState(false);
+  const [expandedInbound, setExpandedInbound] = useState(false);
+
+  const displayOutbound = expandedOutbound
+    ? topAirports.outbound
+    : topAirports.outbound.slice(0, 3);
+  const displayInbound = expandedInbound
+    ? topAirports.inbound
+    : topAirports.inbound.slice(0, 3);
+  const hasMoreOutbound = topAirports.outbound.length > 3;
+  const hasMoreInbound = topAirports.inbound.length > 3;
 
   return (
     <div className="w-fit max-w-[180px] p-1.5 bg-gray-900/60 backdrop-blur-md rounded-lg">
@@ -83,8 +95,8 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
               <div className="text-[8px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
                 Outbound
               </div>
-              <div className="space-y-0.5">
-                {topAirports.outbound.map((airport, index) => (
+              <div className="space-y-0.5 max-h-[200px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {displayOutbound.map((airport, index) => (
                   <button
                     key={airport.code}
                     type="button"
@@ -120,8 +132,24 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                     </span>
                   </button>
                 ))}
+                {/* Show more/less button */}
+                {hasMoreOutbound && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedOutbound(!expandedOutbound);
+                    }}
+                    className="text-[7px] text-gray-500 hover:text-gray-400 w-full text-left px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
+                  >
+                    {expandedOutbound
+                      ? `Show less (${topAirports.outbound.length - 3} hidden)`
+                      : `+${topAirports.outbound.length - 3} more`}
+                  </button>
+                )}
                 {/* Fill empty slots if outbound has fewer than 3 routes */}
-                {topAirports.outbound.length < 3 &&
+                {!hasMoreOutbound &&
+                  topAirports.outbound.length < 3 &&
                   Array.from({ length: 3 - topAirports.outbound.length }).map(
                     (_, index) => (
                       <div
@@ -138,8 +166,8 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
               <div className="text-[8px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
                 Inbound
               </div>
-              <div className="space-y-0.5">
-                {topAirports.inbound.map((airport, index) => (
+              <div className="space-y-0.5 max-h-[200px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {displayInbound.map((airport, index) => (
                   <button
                     key={airport.code}
                     type="button"
@@ -175,8 +203,24 @@ export const AirportPopup = ({ airportData }: AirportPopupProps) => {
                     </span>
                   </button>
                 ))}
+                {/* Show more/less button */}
+                {hasMoreInbound && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedInbound(!expandedInbound);
+                    }}
+                    className="text-[7px] text-gray-500 hover:text-gray-400 w-full text-left px-0.5 py-0.5 transition-colors duration-150 cursor-pointer"
+                  >
+                    {expandedInbound
+                      ? `Show less (${topAirports.inbound.length - 3} hidden)`
+                      : `+${topAirports.inbound.length - 3} more`}
+                  </button>
+                )}
                 {/* Fill empty slots if inbound has fewer than 3 routes */}
-                {topAirports.inbound.length < 3 &&
+                {!hasMoreInbound &&
+                  topAirports.inbound.length < 3 &&
                   Array.from({ length: 3 - topAirports.inbound.length }).map(
                     (_, index) => (
                       <div
