@@ -4,10 +4,14 @@ import { AirportIcon } from "./airportIcon";
 import { AirportPopup } from "./components/AirportPopup";
 import { useFlightDataContext, useSelectedAirport } from "./flightContext";
 import { useConnectedAirports } from "./hooks/useConnectedAirports";
+import { useMap } from "./mapboxMap";
 
 export const AirportMarkers = () => {
   const [mounted, setMounted] = useState(false);
   const { selectedAirport, setSelectedAirport } = useSelectedAirport();
+  const [popupAnchor, setPopupAnchor] = useState<"top" | "bottom" | "left" | "right">("bottom");
+  const [popupOffset, setPopupOffset] = useState<[number, number]>([0, -20]);
+  const map = useMap();
 
   const context = useFlightDataContext();
   const airports = context.flightData.airports;
@@ -66,6 +70,55 @@ export const AirportMarkers = () => {
     setSelectedAirport,
   ]);
 
+  // Adjust popup position based on viewport when airport is selected
+  useEffect(() => {
+    if (!mounted || !selectedAirport || !map) return;
+
+    const selectedAirportData = airports.get(selectedAirport);
+    if (!selectedAirportData) return;
+
+    const airportLon = Number(selectedAirportData[4]);
+    const airportLat = Number(selectedAirportData[3]);
+
+    // Wait a bit for map to settle
+    const timeout = setTimeout(() => {
+      if (!map) return;
+
+      const container = map.getContainer();
+      const viewportHeight = container.clientHeight;
+      const viewportWidth = container.clientWidth;
+
+      const airportPoint = map.project([airportLon, airportLat]);
+      const pointX = airportPoint.x;
+      const pointY = airportPoint.y;
+
+      const popupHeight = 250;
+      const popupWidth = 200;
+      const margin = 20;
+
+      // Determine best anchor position
+      if (pointY < popupHeight + margin) {
+        // Too close to top, put popup below
+        setPopupAnchor("top");
+        setPopupOffset([0, 20]);
+      } else if (pointX < popupWidth / 2 + margin) {
+        // Too close to left, put popup to the right
+        setPopupAnchor("left");
+        setPopupOffset([20, 0]);
+      } else if (pointX > viewportWidth - popupWidth / 2 - margin) {
+        // Too close to right, put popup to the left
+        setPopupAnchor("right");
+        setPopupOffset([-20, 0]);
+      } else {
+        // Default: popup above
+        setPopupAnchor("bottom");
+        setPopupOffset([0, -20]);
+      }
+    }, 100);
+
+    return () => clearTimeout(timeout);
+  }, [selectedAirport, map, mounted, airports]);
+
   const selectedAirportData = selectedAirport
     ? airports.get(selectedAirport)
     : null;
@@ -73,14 +126,12 @@ export const AirportMarkers = () => {
   // Return null during SSR and initial render to prevent hydration mismatch
   if (!mounted || context.flightData.loading) return null;
 
-  const popupOffset: [number, number] = [0, -20];
-
   return (
     <>
       {pins}
       {selectedAirport && selectedAirportData && (
         <Popup
-          anchor="bottom"
+          anchor={popupAnchor}
           longitude={Number(selectedAirportData[4])}
           latitude={Number(selectedAirportData[3])}
           onClose={() => setSelectedAirport(null)}
