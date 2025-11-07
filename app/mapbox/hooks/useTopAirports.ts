@@ -9,31 +9,39 @@ interface TopAirport {
   icao?: string;
 }
 
-export const useTopAirports = (limit: number = 3): TopAirport[] => {
+interface TopAirportsResult {
+  outbound: TopAirport[];
+  inbound: TopAirport[];
+}
+
+export const useTopAirports = (limit: number = 3): TopAirportsResult => {
   const { selectedAirport } = useSelectedAirport();
   const context = useFlightDataContext();
   const airports = context.flightData.airports;
 
   return useMemo(() => {
     if (!selectedAirport || !context.flightData.allFlights || !airports) {
-      return [];
+      return { outbound: [], inbound: [] };
     }
 
-    // Count flights to/from each connected airport
-    const airportCounts = new Map<string, number>();
+    // Count outbound and inbound flights separately
+    const outboundCounts = new Map<string, number>();
+    const inboundCounts = new Map<string, number>();
 
     context.flightData.allFlights.forEach((flight) => {
       if (flight[0] === selectedAirport) {
-        const count = airportCounts.get(flight[1]) || 0;
-        airportCounts.set(flight[1], count + 1);
+        // Outbound flight
+        const count = outboundCounts.get(flight[1]) || 0;
+        outboundCounts.set(flight[1], count + 1);
       } else if (flight[1] === selectedAirport) {
-        const count = airportCounts.get(flight[0]) || 0;
-        airportCounts.set(flight[0], count + 1);
+        // Inbound flight
+        const count = inboundCounts.get(flight[0]) || 0;
+        inboundCounts.set(flight[0], count + 1);
       }
     });
 
-    // Convert to array and sort by flight count (descending)
-    const sorted = Array.from(airportCounts.entries())
+    // Convert to arrays and sort by count (descending)
+    const topOutbound = Array.from(outboundCounts.entries())
       .map(([code, count]) => {
         const airportData = airports.get(code);
         return {
@@ -44,11 +52,26 @@ export const useTopAirports = (limit: number = 3): TopAirport[] => {
           icao: airportData?.[2],
         };
       })
-      .filter((airport) => airport.name) // Filter out invalid airports
+      .filter((airport) => airport.name)
       .sort((a, b) => b.count - a.count)
-      .slice(0, limit); // Top N
+      .slice(0, limit);
 
-    return sorted;
+    const topInbound = Array.from(inboundCounts.entries())
+      .map(([code, count]) => {
+        const airportData = airports.get(code);
+        return {
+          code,
+          count,
+          name: airportData?.[1] || code,
+          iata: airportData?.[0],
+          icao: airportData?.[2],
+        };
+      })
+      .filter((airport) => airport.name)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+
+    return { outbound: topOutbound, inbound: topInbound };
   }, [selectedAirport, context.flightData.allFlights, airports, limit]);
 };
 
