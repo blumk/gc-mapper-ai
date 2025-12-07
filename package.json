@@ -14,7 +14,7 @@
     "@vercel/speed-insights": "^1.0.4",
     "csv": "^6.3.6",
     "mapbox-gl": "^3.0.1",
-    "next": "16.0.0",
+    "next": "16.0.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-map-gl": "^7.1.7"
